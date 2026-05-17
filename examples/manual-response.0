@@ -1,0 +1,19 @@
+use zhttp
+
+fun validateName(name: String) -> HttpResponse {
+    if std.mem.eql(name, "") {
+        return json(Status.bad_request, "{\"error\":\"missing-name\"}")
+    }
+
+    return text(Status.ok, "accepted")
+}
+
+pub fun main(world: World) -> Void raises {
+    let res = validateName("")
+
+    if statusCode(res.status) == 400 &&
+        std.mem.eql(res.content_type, "application/json") &&
+        std.mem.eql(res.body, "{\"error\":\"missing-name\"}") {
+        check world.out.write("manual validation -> 400 application/json\n")
+    }
+}

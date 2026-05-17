@@ -1,0 +1,11 @@
+use zhttp
+
+pub fun main(world: World) -> Void raises {
+    let method = parseMethod("GET")
+    let req = request(method, "/health", std.mem.span(""))
+    let res = dispatch(req)
+
+    if method == Method.get && statusCode(res.status) == 200 {
+        check world.out.write("parseMethod(\"GET\") -> Method.get -> 200\n")
+    }
+}

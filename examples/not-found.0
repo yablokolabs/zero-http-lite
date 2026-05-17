@@ -1,0 +1,12 @@
+use zhttp
+
+pub fun main(world: World) -> Void raises {
+    let req = request(Method.put, "/missing", std.mem.span(""))
+    let res = dispatch(req)
+
+    if statusCode(res.status) == 404 &&
+        std.mem.eql(statusText(res.status), "Not Found") &&
+        std.mem.eql(res.body, "not found") {
+        check world.out.write("PUT /missing -> 404 Not Found\n")
+    }
+}

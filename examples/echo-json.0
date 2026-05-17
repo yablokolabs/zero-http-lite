@@ -1,0 +1,13 @@
+use zhttp
+
+pub fun main(world: World) -> Void raises {
+    let req = request(Method.post, "/echo", std.mem.span("hello"))
+    let res = dispatch(req)
+
+    if bodyLen(req) == 5 &&
+        statusCode(res.status) == 201 &&
+        std.mem.eql(res.content_type, "application/json") &&
+        std.mem.eql(res.body, "{\"echo\":true}") {
+        check world.out.write("POST /echo -> 201 application/json {\"echo\":true}\n")
+    }
+}

@@ -1,0 +1,12 @@
+use zhttp
+
+pub fun main(world: World) -> Void raises {
+    let req = request(Method.get, "/health", std.mem.span(""))
+    let res = dispatch(req)
+
+    if statusCode(res.status) == 200 &&
+        std.mem.eql(statusText(res.status), "OK") &&
+        std.mem.eql(res.body, "ok") {
+        check world.out.write("GET /health -> 200 OK ok\n")
+    }
+}
