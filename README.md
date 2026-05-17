@@ -1,32 +1,31 @@
-# Zero Agent Lab
+# zero-http-lite
 
-A small public lab for testing [Zero](https://github.com/vercel-labs/zero), Vercel Labs' experimental “programming language for agents”.
+Tiny HTTP request/response primitives written in [Zero](https://github.com/vercel-labs/zero).
 
-The goal is not to ship production Zero yet. The goal is to answer a sharper question:
+This is intentionally small: Zero's current `std.http` exposes method/body helpers and net metadata, but not a full request/response runtime yet. `zero-http-lite` fills that gap at the library layer with explicit, allocation-free-ish primitives that are easy for agents to inspect with `zero check --json`, `zero graph --json`, and `zero size --json`.
 
-> Do agent-oriented compiler surfaces actually make agents faster, safer, and less confused when writing systems code?
+## What it is
 
-## Why this exists
+A mini HTTP layer for Zero programs:
 
-Zero has a few ideas that are especially interesting for coding agents:
+- `Method` and `Status` enums
+- `HttpRequest` and `HttpResponse` shapes
+- method token parsing
+- status-code/status-text helpers
+- text/json response builders
+- a tiny example dispatcher
+- a checkable CLI demo
 
-- explicit capabilities instead of ambient globals (`World`, `std.fs`, `std.env`)
-- explicit fallibility (`raises`, `check`, `rescue`)
-- stable diagnostic codes and machine-readable JSON output
-- command surfaces for graph, size, doctor, fix plans, and bundled skills
-- a small native-tool-oriented systems language surface
+## What it is not
 
-This repo is a sandbox to poke at those claims with tiny, repeatable examples.
+- not a TCP server
+- not a framework
+- not production-ready
+- not trying to hide Zero's current limits
 
-## Current status
+The idea is to build the missing higher-level HTTP concepts *on top of* Zero's explicit capability model, not around it.
 
-- Upstream Zero is experimental and changing quickly.
-- This repo intentionally keeps examples small and boring.
-- Any “agent friendliness” claim here should be backed by compiler JSON, repair plans, or repeatable transcripts.
-
-## Quick start
-
-Install Zero from upstream:
+## Install Zero
 
 ```sh
 curl -fsSL https://zerolang.ai/install.sh | bash
@@ -34,47 +33,68 @@ export PATH="$HOME/.zero/bin:$PATH"
 zero --version
 ```
 
-Run the local smoke checks:
-
-```sh
-./scripts/smoke.sh
-```
-
-Or point at a specific compiler binary:
+Or point the smoke script at a local compiler:
 
 ```sh
 ZERO_BIN=/path/to/zero ./scripts/smoke.sh
 ```
 
-## Repo layout
+## Validate
 
-```text
-examples/                 tiny valid Zero programs
-experiments/              intentionally focused tests/fixtures
-prompts/                  prompts for agent repair/comprehension trials
-scripts/smoke.sh          local validation using Zero JSON surfaces
-docs/evaluation-plan.md   how we judge whether the agent-friendly claim holds
-docs/zero-notes.md        observations from early repo review
+```sh
+./scripts/smoke.sh
 ```
 
-## First experiments
+The smoke script runs:
 
-1. **Diagnostics repair loop** — give an agent a broken `.0` file plus `zero check --json` output and measure whether it applies the minimal fix.
-2. **Capability awareness** — ask an agent to add file/env/network behavior and see whether it respects target capabilities.
-3. **Graph comprehension** — use `zero graph --json` to ask an agent to explain symbols and effects without reading every file.
-4. **Size awareness** — use `zero size --json` to see whether agents can reason about helper retention and profile budgets.
+- `zero check --json .`
+- `zero graph --json .`
+- `zero size --json .`
 
-## Non-goals
+Artifacts are written to `.zero/out/`.
 
-- replacing Rust/Zig/C today
-- claiming Zero is stable
-- hiding compiler failures behind prose
-- benchmarking vibes instead of artifacts
+## Example
 
-## Upstream
+```zero
+use zhttp
 
-- Repository: <https://github.com/vercel-labs/zero>
-- Website: <https://zerolang.ai>
-- License: upstream Zero is Apache-2.0
+pub fun main(world: World) -> Void raises {
+    let req = request(Method.get, "/health", std.mem.span(""))
+    let res = dispatch(req)
 
-This lab is independent and exploratory.
+    if statusCode(res.status) == 200 && std.mem.eql(res.body, "ok") {
+        check world.out.write("zero-http-lite ok\n")
+    }
+}
+```
+
+## Current API
+
+Defined in `src/zhttp.0`:
+
+```zero
+pub enum Method { get, post, put, patch, del, unknown }
+pub enum Status { ok, created, bad_request, not_found, method_not_allowed, internal_error }
+
+pub shape HttpRequest {
+    method: Method,
+    path: String,
+    body: Span<u8>,
+}
+
+pub shape HttpResponse {
+    status: Status,
+    content_type: String,
+    body: String,
+}
+```
+
+The tiny dispatcher is deliberately boring:
+
+- `GET /health` → `200 text/plain ok`
+- `POST /echo` → `201 application/json {"echo":true}`
+- everything else → `404 text/plain not found`
+
+## Why this repo exists
+
+This repo is a small concrete Zero project rather than a copy of the Zero compiler repo: useful enough to inspect, tiny enough to understand, and shaped around Zero's agent-friendly JSON tooling.

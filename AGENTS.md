@@ -1,33 +1,19 @@
 # Agent Notes
 
-This repo is about testing Zero as an agent-friendly language. Keep changes small, explicit, and backed by tool output.
+This is a real mini project using Zero: a tiny HTTP layer library.
 
 ## Rules
 
-- Do not invent Zero syntax. Check upstream docs or ask the compiler.
-- Prefer `zero check --json`, `zero graph --json`, `zero size --json`, and `zero fix --plan --json` over guessing from text diagnostics.
-- Keep examples tiny and copyable.
-- Use explicit public signatures.
-- Treat effects as capabilities, not globals.
-- If a fixture is supposed to fail, document the expected diagnostic code.
+- Do not copy upstream Zero into this repo.
+- Keep the project small and concrete.
+- Use `ZERO_BIN=/path/to/zero ./scripts/smoke.sh` before committing.
+- Prefer compiler JSON (`check`, `graph`, `size`) over guessing.
+- If Zero lacks a runtime feature, model it explicitly instead of pretending it exists.
 
 ## Useful commands
 
 ```sh
-./scripts/smoke.sh
-zero skills list
-zero skills get zero --full
-zero check --json examples/hello.0
-zero graph --json examples/math.0
-zero fix --plan --json experiments/01-diagnostics/missing-binding.0
+zero check --json .
+zero graph --json .
+zero size --json .
 ```
-
-## Validation before commit
-
-Run:
-
-```sh
-./scripts/smoke.sh
-```
-
-If Zero is not installed locally, at least run shellcheck-style review of scripts and document the blocker.

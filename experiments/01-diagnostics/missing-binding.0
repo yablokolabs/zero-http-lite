@@ -1,4 +1,0 @@
-// Expected diagnostic: NAM003 unknown identifier.
-pub fun main(world: World) -> Void raises {
-    check world.out.write(message)
-}

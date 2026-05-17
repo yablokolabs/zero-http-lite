@@ -1,8 +1,8 @@
 {
-  "name": "zero-agent-lab",
+  "name": "zero-http-lite",
   "version": "0.1.0",
   "private": true,
-  "description": "Experiments testing Zero's agent-friendly programming-language surfaces.",
+  "description": "Tiny HTTP request/response primitives written in Zero.",
   "scripts": {
     "smoke": "./scripts/smoke.sh"
   }

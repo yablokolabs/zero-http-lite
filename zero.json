@@ -1,12 +1,13 @@
 {
   "package": {
-    "name": "zero-agent-lab",
-    "version": "0.1.0"
+    "name": "zero-http-lite",
+    "version": "0.1.0",
+    "license": "Apache-2.0"
   },
   "targets": {
     "cli": {
       "kind": "exe",
-      "main": "examples/hello.0"
+      "main": "src/main.0"
     }
   }
 }

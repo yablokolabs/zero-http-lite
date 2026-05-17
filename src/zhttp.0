@@ -1,0 +1,124 @@
+pub enum Method {
+    get,
+    post,
+    put,
+    patch,
+    del,
+    unknown,
+}
+
+pub enum Status {
+    ok,
+    created,
+    bad_request,
+    not_found,
+    method_not_allowed,
+    internal_error,
+}
+
+pub shape HttpRequest {
+    method: Method,
+    path: String,
+    body: Span<u8>,
+}
+
+pub shape HttpResponse {
+    status: Status,
+    content_type: String,
+    body: String,
+}
+
+pub fun parseMethod(token: String) -> Method {
+    if std.mem.eql(token, "GET") {
+        return Method.get
+    }
+    if std.mem.eql(token, "POST") {
+        return Method.post
+    }
+    if std.mem.eql(token, "PUT") {
+        return Method.put
+    }
+    if std.mem.eql(token, "PATCH") {
+        return Method.patch
+    }
+    if std.mem.eql(token, "DELETE") {
+        return Method.del
+    }
+    return Method.unknown
+}
+
+pub fun statusCode(status: Status) -> i32 {
+    match status {
+        .ok {
+            return 200
+        }
+        .created {
+            return 201
+        }
+        .bad_request {
+            return 400
+        }
+        .not_found {
+            return 404
+        }
+        .method_not_allowed {
+            return 405
+        }
+        .internal_error {
+            return 500
+        }
+    }
+    return 500
+}
+
+pub fun statusText(status: Status) -> String {
+    match status {
+        .ok {
+            return "OK"
+        }
+        .created {
+            return "Created"
+        }
+        .bad_request {
+            return "Bad Request"
+        }
+        .not_found {
+            return "Not Found"
+        }
+        .method_not_allowed {
+            return "Method Not Allowed"
+        }
+        .internal_error {
+            return "Internal Error"
+        }
+    }
+    return "Internal Error"
+}
+
+pub fun request(method: Method, path: String, body: Span<u8>) -> HttpRequest {
+    return HttpRequest { method: method, path: path, body: body }
+}
+
+pub fun text(status: Status, body: String) -> HttpResponse {
+    return HttpResponse { status: status, content_type: "text/plain", body: body }
+}
+
+pub fun json(status: Status, body: String) -> HttpResponse {
+    return HttpResponse { status: status, content_type: "application/json", body: body }
+}
+
+pub fun bodyLen(req: HttpRequest) -> usize {
+    return std.mem.len(req.body)
+}
+
+pub fun dispatch(req: HttpRequest) -> HttpResponse {
+    if req.method == Method.get && std.mem.eql(req.path, "/health") {
+        return text(Status.ok, "ok")
+    }
+
+    if req.method == Method.post && std.mem.eql(req.path, "/echo") {
+        return json(Status.created, "{\"echo\":true}")
+    }
+
+    return text(Status.not_found, "not found")
+}
